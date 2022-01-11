@@ -582,6 +582,13 @@ defaults:
       binary_type: native
       nodejs_version: '16'
       resource_class: medium
+  - job_native_test_ext_gp2: &job_native_test_ext_gp2
+      <<: *workflow_ubuntu2004_static
+      name: t_native_test_ext_gp2
+      project: gp2
+      binary_type: native
+      # NOTE: Tests crash on nodejs 17: "Error: error:0308010C:digital envelope routines::unsupported"
+      nodejs_version: '16'
   - job_ems_test_ext_colony: &job_ems_test_ext_colony
       <<: *workflow_emscripten
       name: t_ems_test_ext_colony
@@ -1480,6 +1487,7 @@ workflows:
       - t_ems_ext: *job_native_test_ext_uniswap
       - t_ems_ext: *job_native_test_ext_prb_math
       - t_ems_ext: *job_native_test_ext_elementfi
+      - t_ems_ext: *job_native_test_ext_gp2
 
       - c_ext_benchmarks:
           <<: *workflow_trigger_on_tags
