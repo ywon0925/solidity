@@ -9,6 +9,7 @@ Compiler Features:
  * Commandline Interface: option ``--pretty-json`` works also with the following options: ``--abi``, ``--asm-json``, ``--ast-compact-json``, ``--devdoc``, ``--storage-layout``, ``--userdoc``.
  * SMTChecker: Support ``abi.encodeCall`` taking into account the called selector.
  * Yul EVM Code Transform: Generate more optimal code for user-defined functions that always terminate a transaction. No return labels will be pushed for calls to functions that always terminate.
+ * Yul Optimizer: Improve inlining heuristics for via IR code generation and pure Yul compilation.
 
 
 Bugfixes:
