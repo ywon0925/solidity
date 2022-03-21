@@ -57,6 +57,7 @@ bool ControlFlowBuilder::visit(BinaryOperation const& _operation)
 {
 	solAssert(!!m_currentNode, "");
 
+	// TODO add user defined operators
 	switch (_operation.getOperator())
 	{
 		case Token::Or:

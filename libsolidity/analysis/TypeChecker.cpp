@@ -1690,25 +1690,32 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 	_operation.annotation().isLValue = false;
 	_operation.annotation().isConstant = false;
 
-	FunctionDefinition const* function = leftType->userDefinedOperator(_operation.getOperator(), *currentDefinitionScope());
-	_operation.annotation().userDefinedFunction = function;
-	FunctionType const* functionType = function ? dynamic_cast<FunctionType const*>(
-		function->libraryFunction() ? function->typeViaContractName() : function->type()
-	) : nullptr;
-	if (function)
-		solAssert(functionType);
+	// Check if the operator is built-in or user-defined.
+	FunctionDefinition const* userDefinedOperator = leftType->userDefinedOperator(
+		_operation.getOperator(),
+		*currentDefinitionScope()
+	);
+	_operation.annotation().userDefinedFunction = userDefinedOperator;
+	FunctionType const* userDefinedFunctionType = nullptr;
+	if (userDefinedOperator)
+		userDefinedFunctionType = &dynamic_cast<FunctionType const&>(
+			userDefinedOperator->libraryFunction() ?
+			*userDefinedOperator->typeViaContractName() :
+			*userDefinedOperator->type()
+		);
 	_operation.annotation().isPure =
 		*_operation.leftExpression().annotation().isPure &&
 		*_operation.rightExpression().annotation().isPure &&
-		(!functionType || functionType->isPure());
+		(!userDefinedFunctionType || userDefinedFunctionType->isPure());
+
 	TypeResult builtinResult = leftType->binaryOperatorResult(_operation.getOperator(), rightType);
 	Type const* commonType = leftType;
 
 	// Either the operator is user-defined or built-in.
-	// TODO this is wrong for comparisons, they might be defined on user-defined types.
-	solAssert(!function || !builtinResult);
+	// TODO For enums, we have compare operators. Should we disallow overriding them?
+	solAssert(!userDefinedOperator || !builtinResult);
 
-	if (!builtinResult && !function)
+	if (!builtinResult && !userDefinedOperator)
 		m_errorReporter.typeError(
 			2271_error,
 			_operation.location(),
@@ -1723,14 +1730,14 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 
 	if (builtinResult)
 		commonType = builtinResult.get();
-	else if (function)
+	else if (userDefinedOperator)
 	{
 		solAssert(
-			functionType->parameterTypes().size() == 2 &&
-			*functionType->parameterTypes().at(0) ==
-			*functionType->parameterTypes().at(1)
+			userDefinedFunctionType->parameterTypes().size() == 2 &&
+			*userDefinedFunctionType->parameterTypes().at(0) ==
+			*userDefinedFunctionType->parameterTypes().at(1)
 		);
-		commonType = functionType->parameterTypes().at(0);
+		commonType = userDefinedFunctionType->parameterTypes().at(0);
 	}
 
 	_operation.annotation().commonType = commonType;
@@ -1739,10 +1746,10 @@ void TypeChecker::endVisit(BinaryOperation const& _operation)
 		TypeProvider::boolean() :
 		commonType;
 
-	if (function)
+	if (userDefinedOperator)
 		solAssert(
-			functionType->returnParameterTypes().size() == 1 &&
-			*functionType->returnParameterTypes().front() == *_operation.annotation().type
+			userDefinedFunctionType->returnParameterTypes().size() == 1 &&
+			*userDefinedFunctionType->returnParameterTypes().front() == *_operation.annotation().type
 		);
 	else if (builtinResult && (_operation.getOperator() == Token::Exp || _operation.getOperator() == Token::SHL))
 	{

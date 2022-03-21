@@ -204,6 +204,8 @@ bool FunctionCallGraphBuilder::visit(MemberAccess const& _memberAccess)
 	return true;
 }
 
+// TODO add UNARY user defined operators
+
 bool FunctionCallGraphBuilder::visit(BinaryOperation const& _binaryOperation)
 {
 	if (FunctionDefinition const* function = _binaryOperation.annotation().userDefinedFunction)

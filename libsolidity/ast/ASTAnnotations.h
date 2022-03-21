@@ -314,6 +314,7 @@ struct BinaryOperationAnnotation: ExpressionAnnotation
 	/// The common type that is used for the operation, not necessarily the result type (which
 	/// e.g. for comparisons is bool).
 	Type const* commonType = nullptr;
+	// TODO should this be more like "referencedDeclaration"?
 	FunctionDefinition const* userDefinedFunction = nullptr;
 };
 

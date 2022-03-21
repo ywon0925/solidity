@@ -987,10 +987,10 @@ ASTPointer<UsingForDirective> Parser::parseUsingDirective()
 					Token::LessThan, Token::GreaterThan, Token::LessThanOrEqual, Token::GreaterThanOrEqual,
 					Token::BitNot
 				};
-				if (!contains(overridable, operator_))
+				if (!util::contains(overridable, operator_))
 					parserError(
 						1885_error, "Only the following operators can be implemented: " +
-						joinHumanReadable(overridable | ranges::views::transform([](Token _t) { return string{TokenTraits::toString(_t)}; }))
+						util::joinHumanReadable(overridable | ranges::views::transform([](Token _t) { return string{TokenTraits::toString(_t)}; }))
 					);
 				operators.emplace_back(operator_);
 				advance();
