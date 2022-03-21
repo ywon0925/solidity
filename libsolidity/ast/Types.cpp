@@ -393,16 +393,15 @@ FunctionDefinition const* Type::userDefinedOperator(Token _token, ASTNode const&
 				*pathPointer->annotation().referencedDeclaration
 			);
 			Type const* functionType =
+				dynamic_cast<
 				function.libraryFunction() ? function.typeViaContractName() : function.type();
-			solAssert(functionType);
+			solAssert(functionType && functionType->);
 			FunctionType const* asBoundFunction =
 				dynamic_cast<FunctionType const&>(*functionType).asBoundFunction();
 			solAssert(asBoundFunction);
 
-			// TODO some place needs to check that the second parameter type is the same.
-
-			if (isImplicitlyConvertibleTo(*asBoundFunction->selfType()))
-				seenFunctions.insert(&function);
+			solAssert(isImplicitlyConvertibleTo(*asBoundFunction->selfType()));
+			seenFunctions.insert(&function);
 		}
 	// TODO proper error handling.
 	if (seenFunctions.size() == 1)

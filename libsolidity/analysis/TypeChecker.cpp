@@ -1663,7 +1663,27 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 	else
 		_operation.subExpression().accept(*this);
 	Type const* subExprType = type(_operation.subExpression());
-	Type const* t = type(_operation.subExpression())->unaryOperatorResult(op);
+
+
+	// Check if the operator is built-in or user-defined.
+	FunctionDefinition const* userDefinedOperator = subExprType->userDefinedOperator(
+		_operation.getOperator(),
+		*currentDefinitionScope()
+	);
+	_operation.annotation().userDefinedFunction = userDefinedOperator;
+	FunctionType const* userDefinedFunctionType = nullptr;
+	if (userDefinedOperator)
+		userDefinedFunctionType = &dynamic_cast<FunctionType const&>(
+			userDefinedOperator->libraryFunction() ?
+			*userDefinedOperator->typeViaContractName() :
+			*userDefinedOperator->type()
+		);
+
+	TypeResult builtinResult = leftType->binaryOperatorResult(_operation.getOperator(), rightType);
+	Type const* commonType = leftType;
+
+
+	Type const* t = subExprType->unaryOperatorResult(op);
 	if (!t)
 	{
 		string description = "Unary operator " + string(TokenTraits::toString(op)) + " cannot be applied to type " + subExprType->toString();
@@ -1677,7 +1697,10 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 	}
 	_operation.annotation().type = t;
 	_operation.annotation().isConstant = false;
-	_operation.annotation().isPure = !modifying && *_operation.subExpression().annotation().isPure;
+	_operation.annotation().isPure =
+		!modifying &&
+		*_operation.subExpression().annotation().isPure &&
+		(!userDefinedFunctionType || userDefinedFunctionType->isPure());
 	_operation.annotation().isLValue = false;
 
 	return false;
@@ -3761,6 +3784,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 				);
 				continue;
 			}
+			// "-" can be used as unary and binary operator.
 			bool isUnaryNegation = (
 				operator_ == Token::Sub &&
 				functionType->parameterTypesIncludingSelf().size() == 1
@@ -3785,7 +3809,7 @@ void TypeChecker::endVisit(UsingForDirective const& _usingFor)
 					"."
 				);
 			if (
-				(isUnaryNegation || TokenTraits::isUnaryOp(*operator_)) &&
+				(isUnaryNegation || (TokenTraits::isUnaryOp(*operator_) && *operator_ != Token::Add)) &&
 				functionType->parameterTypesIncludingSelf().size() != 1
 			)
 				m_errorReporter.typeError(

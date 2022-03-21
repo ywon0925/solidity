@@ -2051,6 +2051,8 @@ public:
 	bool isPrefixOperation() const { return m_isPrefix; }
 	Expression const& subExpression() const { return *m_subExpression; }
 
+	OperationAnnotation& annotation() const override;
+
 private:
 	Token m_operator;
 	ASTPointer<Expression> m_subExpression;
