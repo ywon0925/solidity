@@ -386,21 +386,17 @@ FunctionDefinition const* Type::userDefinedOperator(Token _token, ASTNode const&
 	for (UsingForDirective const* ufd: usingForDirectivesForType(*this, _scope))
 		for (auto const& [pathPointer, operator_]: ufd->functionsAndOperators())
 		{
-			// TODO there are still some parts of this function that can be combined with boundFunctions
 			if (operator_ != _token)
 				continue;
 			FunctionDefinition const& function = dynamic_cast<FunctionDefinition const&>(
 				*pathPointer->annotation().referencedDeclaration
 			);
-			Type const* functionType =
-				dynamic_cast<
-				function.libraryFunction() ? function.typeViaContractName() : function.type();
-			solAssert(functionType && functionType->);
-			FunctionType const* asBoundFunction =
-				dynamic_cast<FunctionType const&>(*functionType).asBoundFunction();
-			solAssert(asBoundFunction);
-
-			solAssert(isImplicitlyConvertibleTo(*asBoundFunction->selfType()));
+			FunctionType const* functionType = dynamic_cast<FunctionType const*>(
+				function.libraryFunction() ? function.typeViaContractName() : function.type()
+			);
+			solAssert(functionType && !functionType->parameterTypes().empty());
+			// TODO does this work (data location)?
+			solAssert(isImplicitlyConvertibleTo(*functionType->parameterTypes().front()));
 			seenFunctions.insert(&function);
 		}
 	// TODO proper error handling.

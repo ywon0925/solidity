@@ -1679,12 +1679,22 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 			*userDefinedOperator->type()
 		);
 
-	TypeResult builtinResult = leftType->binaryOperatorResult(_operation.getOperator(), rightType);
-	Type const* commonType = leftType;
+	Type const* builtinResult = subExprType->unaryOperatorResult(op);
 
-
-	Type const* t = subExprType->unaryOperatorResult(op);
-	if (!t)
+	solAssert(!builtinResult || !userDefinedOperator);
+	if (userDefinedOperator)
+	{
+		solAssert(userDefinedFunctionType->parameterTypes().size() == 1);
+		solAssert(userDefinedFunctionType->returnParameterTypes().size() == 1);
+		solAssert(
+			*userDefinedFunctionType->parameterTypes().at(0) ==
+			*userDefinedFunctionType->returnParameterTypes().at(0)
+		);
+		_operation.annotation().type = userDefinedFunctionType->returnParameterTypes().at(0);
+	}
+	else if (builtinResult)
+		_operation.annotation().type = builtinResult;
+	else
 	{
 		string description = "Unary operator " + string(TokenTraits::toString(op)) + " cannot be applied to type " + subExprType->toString();
 		if (modifying)
@@ -1693,9 +1703,9 @@ bool TypeChecker::visit(UnaryOperation const& _operation)
 			m_errorReporter.fatalTypeError(9767_error, _operation.location(), description);
 		else
 			m_errorReporter.typeError(4907_error, _operation.location(), description);
-		t = subExprType;
+		_operation.annotation().type = subExprType;
 	}
-	_operation.annotation().type = t;
+
 	_operation.annotation().isConstant = false;
 	_operation.annotation().isPure =
 		!modifying &&
