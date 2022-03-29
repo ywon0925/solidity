@@ -24,6 +24,8 @@ set -e
 source scripts/common.sh
 source test/externalTests/common.sh
 
+REPO_ROOT=$(realpath "$(dirname "$0")/../..")
+
 verify_input "$@"
 BINARY_TYPE="$1"
 BINARY_PATH="$2"
@@ -67,6 +69,10 @@ function gp2_test
     force_hardhat_unlimited_contract_size "$config_file" "$config_var"
     npm install
 
+    # With ethers.js 5.6.2 many tests for revert messages fail.
+    # TODO: Remove when https://github.com/ethers-io/ethers.js/discussions/2849 is resolved.
+    yarn add ethers@5.6.1
+
     # Some dependencies come with pre-built artifacts. We want to build from scratch.
     rm -r node_modules/@gnosis.pm/safe-contracts/build/
 
@@ -84,6 +90,7 @@ function gp2_test
 
     for preset in $SELECTED_PRESETS; do
         hardhat_run_test "$config_file" "$preset" "${compile_only_presets[*]}" compile_fn test_fn "$config_var"
+        store_benchmark_report hardhat gp2 "$repo" "$preset"
     done
 }
 
