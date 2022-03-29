@@ -85,6 +85,14 @@ function gp2_test
     # work. The project imports files that were moved to different locations in 4.0.
     sed -i 's|uint256(-1)|type(uint256).max|g' src/contracts/GPv2Settlement.sol
     sed -i 's|return msg\.sender;|return payable(msg.sender);|g' node_modules/@openzeppelin/contracts/utils/Context.sol
+    perl -i -0pe \
+        "s/uint256 (executedBuyAmount = \(-tokenDeltas\[trade.buyTokenIndex\]\)\n\s+.toUint256\(\);)/uint256 executedBuyAmount; unchecked \{\1\}/g" \
+        src/contracts/GPv2Settlement.sol
+
+    # This test is not supposed to work. The compiler is supposed to enforce zero padding since
+    # at least 0.5.8 (see https://github.com/ethereum/solidity/pull/5815). For some reason the
+    # test worked on 0.7.6 but no longer works on 0.8.x.
+    sed -i 's|it\(("invalid EVM transaction encoding does not change order hash"\)|it.skip\1|g' test/GPv2Signing.test.ts
 
     replace_version_pragmas
 
