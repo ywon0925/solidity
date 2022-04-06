@@ -2271,6 +2271,23 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 			}
 		}
 	}
+	else if (baseType.category() == Type::Category::InlineArray)
+	{
+		InlineArrayType const& arrayType = dynamic_cast<InlineArrayType const&>(baseType);
+		TupleExpression const& tuple = dynamic_cast<TupleExpression const&>(_indexAccess.baseExpression());
+
+		Expression const* index = _indexAccess.indexExpression();
+		Type const* indexType = index->annotation().type;
+		auto numberType = dynamic_cast<RationalNumberType const*>(indexType);
+		size_t literalIndex = numberType->literalValue(nullptr).convert_to<size_t>();
+
+		Type const* componentType = arrayType.components().at(literalIndex);
+
+		Expression const& component = *tuple.components()[literalIndex];
+		IRVariable converted = convert(component, *componentType);
+		define(_indexAccess, converted);
+	}
+
 	else if (baseType.category() == Type::Category::FixedBytes)
 	{
 		auto const& fixedBytesType = dynamic_cast<FixedBytesType const&>(baseType);

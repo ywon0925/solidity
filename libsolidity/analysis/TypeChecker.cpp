@@ -3266,6 +3266,27 @@ bool TypeChecker::visit(IndexAccess const& _access)
 		isLValue = actualType.location() != DataLocation::CallData;
 		break;
 	}
+	case Type::Category::InlineArray:
+	{
+		InlineArrayType const& actualType = dynamic_cast<InlineArrayType const&>(*baseType);
+		if (!index)
+			m_errorReporter.typeError(9689_error, _access.location(), "Index expression cannot be omitted.");
+		else
+		{
+			expectType(*index, *TypeProvider::uint256());
+			if (!m_errorReporter.hasErrors())
+				if (auto numberType = dynamic_cast<RationalNumberType const*>(type(*index)))
+				{
+					solAssert(!numberType->isFractional(), "");
+
+					size_t literalIndex = numberType->literalValue(nullptr).convert_to<size_t>();
+					if (actualType.components().size() <= numberType->literalValue(nullptr))
+						m_errorReporter.typeError(3383_error, _access.location(), "Out of bounds array access.");
+					resultType = actualType.components().at(literalIndex);
+				}
+		}
+		break;
+	}
 	case Type::Category::Mapping:
 	{
 		MappingType const& actualType = dynamic_cast<MappingType const&>(*baseType);

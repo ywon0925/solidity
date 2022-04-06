@@ -7,6 +7,6 @@ contract C {
     }
 }
 // ====
-// compileViaYul: also
+// compileViaYul: true
 // ----
 // h(), 1 ether -> 1
