@@ -24,7 +24,7 @@ contract C {
     }
 }
 // ====
-// compileViaYul: also
+// compileViaYul: true
 // ----
 // a() -> -2
 // direct() -> -2

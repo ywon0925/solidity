@@ -44,7 +44,7 @@ contract C {
     }
 }
 // ====
-// compileViaYul: also
+// compileViaYul: true
 // ----
 // copyExternalStorageArrayOfFunctionType() -> true
 // gas irOptimized: 104659

@@ -289,7 +289,7 @@ contract Test {
 //
 // ====
 // EVMVersion: >=constantinople
-// compileViaYul: also
+// compileViaYul: true
 // ----
 // library: Pairing
 // f() -> true
