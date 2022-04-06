@@ -33,7 +33,7 @@ contract C {
     }
 }
 // ====
-// compileViaYul: also
+// compileViaYul: true
 // ----
 // r() -> true, false, true
 // s() -> 123, 456, 789

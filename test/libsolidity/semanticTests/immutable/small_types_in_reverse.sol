@@ -11,7 +11,7 @@ contract A {
 	}
 }
 // ====
-// compileViaYul: also
+// compileViaYul: true
 // ----
 // a() -> 4660
 // b() -> 0x0f0f
