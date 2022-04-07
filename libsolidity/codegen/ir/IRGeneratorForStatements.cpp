@@ -2273,19 +2273,31 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 	}
 	else if (baseType.category() == Type::Category::InlineArray)
 	{
-		InlineArrayType const& arrayType = dynamic_cast<InlineArrayType const&>(baseType);
-		TupleExpression const& tuple = dynamic_cast<TupleExpression const&>(_indexAccess.baseExpression());
+		InlineArrayType const& inlineArrayType = dynamic_cast<InlineArrayType const&>(baseType);
+		// TODO how to determine a correct type of array?
+//		Type const* commonType = nullptr;
+//		for (Type const* type : inlineArrayType.components())
+//		{
+//			commonType = Type::commonType(commonType, type);
+//		}
 
-		Expression const* index = _indexAccess.indexExpression();
-		Type const* indexType = index->annotation().type;
-		auto numberType = dynamic_cast<RationalNumberType const*>(indexType);
-		size_t literalIndex = numberType->literalValue(nullptr).convert_to<size_t>();
+		Type const* componentType = inlineArrayType.components().front();
+		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, componentType);
 
-		Type const* componentType = arrayType.components().at(literalIndex);
+		IRVariable irArray = convert(_indexAccess.baseExpression(), *arrayType);
 
-		Expression const& component = *tuple.components()[literalIndex];
-		IRVariable converted = convert(component, *componentType);
-		define(_indexAccess, converted);
+		string const memAddress =
+			m_utils.memoryArrayIndexAccessFunction(*arrayType) +
+			"(" +
+			irArray.part("mpos").name() +
+			", " +
+			expressionAsType(*_indexAccess.indexExpression(), *TypeProvider::uint256()) +
+			")";
+
+		setLValue(_indexAccess, IRLValue{
+			*arrayType->baseType(),
+			IRLValue::Memory{memAddress}
+		});
 	}
 
 	else if (baseType.category() == Type::Category::FixedBytes)
