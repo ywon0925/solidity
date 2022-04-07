@@ -1,5 +1,15 @@
 [
     {
+        "uid": "SOL-2022-2",
+        "name": "NestedCallataArrayAbiReencodingSizeValidation",
+        "summary": "ABI-encoding values in calldata that contain nested dynamic arrays sometimes read beyond ``calldatasize()`` instead of reverting.",
+        "description": "Calldata validation for nested dynamic types is deferred until the first access to the nested values. Such an access may for example be a copy to memory or an index or member access to the outer type. While in most such accesses calldata validation correctly checks that the data area of the nested array is completely contained in the passed calldata (i.e. in the range [0, calldatasize()]), this check may fail, when ABI encoding such nested types again directly from calldata. For instance, this can, if a value in calldata with a nested dynamic array is passed to an external call, used in ``abi.encode`` or emitted as event. In such cases, if the data area of the nested array extends beyond ``calldatasize()``, ABI encoding it did not revert, but continue reading values from beyond ``calldatasize()`` (i.e. zero values).",
+        "link": "TODO",
+        "introduced": "0.5.8",
+        "fixed": "0.8.14",
+        "severity": "very low"
+    },
+    {
         "uid": "SOL-2022-1",
         "name": "AbiEncodeCallLiteralAsFixedBytesBug",
         "summary": "Literals used for a fixed length bytes parameter in ``abi.encodeCall`` were encoded incorrectly.",
