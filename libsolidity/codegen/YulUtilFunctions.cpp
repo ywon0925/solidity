@@ -3757,14 +3757,16 @@ string YulUtilFunctions::inlineArrayConversionFunction(InlineArrayType const& _f
 					memberSetValues.emplace_back();
 
 					memberSetValues.back()["setMember"] = Whiskers(R"(
-						let <memberValues> := <conversionFunction>(<value>)
-						<writeToMemory>(add(mpos, <offset>), <memberValues>)
+						{
+							let <memberValues> := <conversionFunction>(<value>)
+							<writeToMemory>(add(mpos, <offset>), <memberValues>)
+						}
 					)")
-					("memberValues", suffixedVariableNameList("memberValue_", stackItemIndex, stackItemIndex + type->stackItems().size()))
+					("memberValues", suffixedVariableNameList("memberValue_", stackItemIndex, stackItemIndex + _to.baseType()->stackItems().size()))
 					("offset", to_string(0x20 * index))
 					("value", suffixedVariableNameList("var_", stackItemIndex, stackItemIndex + type->sizeOnStack()))
 					("conversionFunction", conversionFunction(*type, *_to.baseType()))
-					("writeToMemory", writeToMemoryFunction(*type))
+					("writeToMemory", writeToMemoryFunction(*_to.baseType()))
 				   .render();
 
 					stackItemIndex += type->sizeOnStack();
