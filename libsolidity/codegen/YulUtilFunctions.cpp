@@ -3750,6 +3750,25 @@ string YulUtilFunctions::inlineArrayConversionFunction(InlineArrayType const& _f
 		"_to_" +
 		_to.identifier();
 
+		vector<map<string, string>> memberSetValues;
+				unsigned stackItemIndex = 0;
+				for (auto&& [index, type]: _from.components() | ranges::views::enumerate)
+				{
+					memberSetValues.emplace_back();
+
+					memberSetValues.back()["setMember"] = Whiskers(R"(
+						let <memberValues> := <conversionFunction>(<value>)
+						<writeToMemory>(add(mpos, <offset>), <memberValues>)
+					)")
+					("memberValues", suffixedVariableNameList("memberValue_", stackItemIndex, stackItemIndex + type->stackItems().size()))
+					("offset", to_string(0x20 * index))
+					("value", suffixedVariableNameList("var_", stackItemIndex, stackItemIndex + type->sizeOnStack()))
+					("conversionFunction", conversionFunction(*type, *_to.baseType()))
+					("writeToMemory", writeToMemoryFunction(*type))
+				   .render();
+
+					stackItemIndex += type->sizeOnStack();
+				}
 
 	return m_functionCollector.createFunction(functionName, [&]() {
 		Whiskers templ(R"(
@@ -3757,10 +3776,9 @@ string YulUtilFunctions::inlineArrayConversionFunction(InlineArrayType const& _f
 				converted := <allocateArray>(<length>)
 				let mpos := converted
 				<?toDynamic>mpos := add(mpos, 0x20)</toDynamic>
-
-				<#elements>
-				mstore(add(mpos, <offset>), <conversionFunction>(<value>))
-				</elements>
+				<#member>
+					<setMember>
+				</member>
 			}
 		)");
 		templ("functionName", functionName);
@@ -3768,21 +3786,7 @@ string YulUtilFunctions::inlineArrayConversionFunction(InlineArrayType const& _f
 		templ("length", toCompactHexWithPrefix(_from.components().size()));
 		templ("toDynamic", _to.isDynamicallySized());
 		templ("values", suffixedVariableNameList("var_", 0, _from.sizeOnStack()));
-
-		vector<map<string, string>> elements;
-		unsigned stackItemIndex = 0;
-		for (auto&& [index, type]: _from.components() | ranges::views::enumerate)
-		{
-			elements.emplace_back();
-			elements.back()["offset"] = to_string(0x20 * index);
-
-			elements.back()["value"] = suffixedVariableNameList("var_", stackItemIndex, stackItemIndex + type->sizeOnStack());
-
-			elements.back()["conversionFunction"] = conversionFunction(*type, *_to.baseType());
-			stackItemIndex += type->sizeOnStack();
-		}
-
-		templ("elements", move(elements));
+		templ("member", move(memberSetValues));
 
 		return templ.render();
 	});

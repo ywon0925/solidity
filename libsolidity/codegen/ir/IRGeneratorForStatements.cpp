@@ -2282,7 +2282,7 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 //		}
 
 		Type const* componentType = inlineArrayType.components().front();
-		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, componentType);
+		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, componentType, inlineArrayType.components().size());
 
 		IRVariable irArray = convert(_indexAccess.baseExpression(), *arrayType);
 
