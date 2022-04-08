@@ -2274,15 +2274,12 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 	else if (baseType.category() == Type::Category::InlineArray)
 	{
 		InlineArrayType const& inlineArrayType = dynamic_cast<InlineArrayType const&>(baseType);
-		// TODO how to determine a correct type of array?
-//		Type const* commonType = nullptr;
-//		for (Type const* type : inlineArrayType.components())
-//		{
-//			commonType = Type::commonType(commonType, type);
-//		}
 
-		Type const* componentType = inlineArrayType.components().front();
-		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, componentType, inlineArrayType.components().size());
+		Type const* baseType = nullptr;
+		for (Type const* type : inlineArrayType.components())
+			baseType = baseType ? Type::commonType(baseType, type) : type;
+
+		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, baseType, inlineArrayType.components().size());
 
 		IRVariable irArray = convert(_indexAccess.baseExpression(), *arrayType);
 
