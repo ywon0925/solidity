@@ -1,6 +1,7 @@
 ### 0.8.14 (unreleased)
 
 Language Features:
+* General: Extended the language to add the event selector field.
 
 
 Compiler Features:

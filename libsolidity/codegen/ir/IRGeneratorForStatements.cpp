@@ -1774,6 +1774,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			else if (
 				functionType.kind() == FunctionType::Kind::Declaration ||
 				functionType.kind() == FunctionType::Kind::Error ||
+				functionType.kind() == FunctionType::Kind::Event ||
 				// In some situations, internal function types also provide the "selector" member.
 				// See Types.cpp for details.
 				functionType.kind() == FunctionType::Kind::Internal
@@ -1782,6 +1783,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				solAssert(functionType.hasDeclaration());
 				solAssert(
 					functionType.kind() == FunctionType::Kind::Error ||
+					functionType.kind() == FunctionType::Kind::Event ||
 					functionType.declaration().isPartOfExternalInterface(),
 					""
 				);
