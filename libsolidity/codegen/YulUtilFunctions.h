@@ -254,6 +254,9 @@ public:
 	/// signature (to_slot, from_ptr) ->
 	std::string copyArrayToStorageFunction(ArrayType const& _fromType, ArrayType const& _toType);
 
+	std::string copyInlineArrayToStorageFunction(InlineArrayType const& _fromType, ArrayType const& _toType);
+
+
 	/// @returns the name of a function that will copy a byte array to storage
 	/// signature (to_slot, from_ptr) ->
 	std::string copyByteArrayToStorageFunction(ArrayType const& _fromType, ArrayType const& _toType);
