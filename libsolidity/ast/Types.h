@@ -1217,6 +1217,7 @@ public:
 	u256 storageSize() const override;
 	bool hasSimpleZeroValueInMemory() const override { return false; }
 	Type const* mobileType() const override;
+	Type const* componentsCommonMobileType() const;
 
 	std::vector<Type const*> const& components() const { return m_components; }
 

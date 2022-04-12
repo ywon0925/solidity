@@ -2275,13 +2275,9 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 	{
 		InlineArrayType const& inlineArrayType = dynamic_cast<InlineArrayType const&>(baseType);
 
-		Type const* baseType = nullptr;
-		for (Type const* type : inlineArrayType.components())
-			baseType = baseType ? Type::commonType(baseType, type) : type;
+		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, inlineArrayType.componentsCommonMobileType(), inlineArrayType.components().size());
 
-		ArrayType const* arrayType = TypeProvider::array(DataLocation::Memory, baseType, inlineArrayType.components().size());
-
-		IRVariable irArray = convert(_indexAccess.baseExpression(), *arrayType);
+		IRVariable irArray = convert(IRVariable(_indexAccess.baseExpression()), *arrayType);
 
 		string const memAddress =
 			m_utils.memoryArrayIndexAccessFunction(*arrayType) +
@@ -2292,9 +2288,14 @@ void IRGeneratorForStatements::endVisit(IndexAccess const& _indexAccess)
 			")";
 
 		setLValue(_indexAccess, IRLValue{
-			*arrayType->baseType(),
-			IRLValue::Memory{memAddress}
-		});
+				  *arrayType->baseType(),
+				   IRLValue::Memory{memAddress}
+				   });
+
+// TODO: replace "setLValue" with define to block following syntax "[0,1,2][0] = 3"
+//		define(IRVariable(IRNames::localVariable(_indexAccess), *baseType),
+//			   readFromLValue(IRLValue{*arrayType->baseType(), IRLValue::Memory{memAddress}})
+//		);
 	}
 
 	else if (baseType.category() == Type::Category::FixedBytes)

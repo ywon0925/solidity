@@ -2758,6 +2758,15 @@ Type const* InlineArrayType::mobileType() const
 	solUnimplemented("Decide it it has a mobile type");
 }
 
+Type const* InlineArrayType::componentsCommonMobileType() const
+{
+	Type const* commonType = nullptr;
+	for (Type const* type : m_components)
+		commonType = commonType ?
+					Type::commonType(commonType, type->mobileType()) : type->mobileType();
+	return commonType;
+}
+
 vector<tuple<string, Type const*>> InlineArrayType::makeStackItems() const
 {
 	vector<tuple<string, Type const*>> slots;
