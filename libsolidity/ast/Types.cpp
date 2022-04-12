@@ -2764,7 +2764,7 @@ Type const* InlineArrayType::componentsCommonMobileType() const
 	for (Type const* type : m_components)
 		commonType = commonType ?
 					Type::commonType(commonType, type->mobileType()) : type->mobileType();
-	return commonType;
+	return TypeProvider::withLocationIfReference(DataLocation::Memory, commonType);
 }
 
 vector<tuple<string, Type const*>> InlineArrayType::makeStackItems() const
