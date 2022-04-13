@@ -74,6 +74,11 @@ function gnosis_safe_test
     # TODO: Remove this when Hardhat adjusts heuristics for IR (https://github.com/nomiclabs/hardhat/issues/2115).
     sed -i "s|\(it\)\(('should not allow to call setup on singleton'\)|\1.skip\2|g" test/core/GnosisSafe.Setup.spec.ts
 
+    # TODO: Remove this when https://github.com/NomicFoundation/hardhat/issues/2453 gets fixed.
+    sed -i "s|it\(('should enforce delegatecall'\)|it.skip\1|g" test/accessors/SimulateTxAccessor.spec.ts
+    sed -i "s|it\(('can only be called from Safe itself'\)|it.skip\1|g" test/libraries/Migration.spec.ts
+    sed -i "s|it\(('should enforce delegatecall to MultiSend'\)|it.skip\1|g" test/libraries/MultiSend.spec.ts
+
     neutralize_package_lock
     neutralize_package_json_hooks
     force_hardhat_compiler_binary "$config_file" "$BINARY_TYPE" "$BINARY_PATH"
