@@ -366,16 +366,16 @@ bool ExpressionCompiler::visit(TupleExpression const& _tuple)
 {
 	if (_tuple.isInlineArray())
 	{
-		ArrayType const& arrayType = dynamic_cast<ArrayType const&>(*_tuple.annotation().type);
+		InlineArrayType const& arrayType = dynamic_cast<InlineArrayType const&>(*_tuple.annotation().type);
 
 		solAssert(!arrayType.isDynamicallySized(), "Cannot create dynamically sized inline array.");
-		utils().allocateMemory(max(u256(32u), arrayType.memoryDataSize()));
+		utils().allocateMemory(max(u256(32u), u256(arrayType.components().size() * arrayType.componentsCommonMobileType()->memoryHeadSize())));
 		m_context << Instruction::DUP1;
 
 		for (auto const& component: _tuple.components())
 		{
-			acceptAndConvert(*component, *arrayType.baseType(), true);
-			utils().storeInMemoryDynamic(*arrayType.baseType(), true);
+			acceptAndConvert(*component, *arrayType.componentsCommonMobileType(), true);
+			utils().storeInMemoryDynamic(*arrayType.componentsCommonMobileType(), true);
 		}
 
 		m_context << Instruction::POP;
