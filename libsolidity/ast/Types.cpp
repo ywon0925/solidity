@@ -2755,7 +2755,20 @@ u256 InlineArrayType::storageSize() const
 
 Type const* InlineArrayType::mobileType() const
 {
-	solUnimplemented("Decide it it has a mobile type");
+	TypePointers mobiles;
+	for (auto const& c: components())
+	{
+		if (c)
+		{
+			auto mt = c->mobileType();
+			if (!mt)
+				return nullptr;
+			mobiles.push_back(mt);
+		}
+		else
+			mobiles.push_back(nullptr);
+	}
+	return TypeProvider::inlineArray(move(mobiles));
 }
 
 Type const* InlineArrayType::componentsCommonMobileType() const

@@ -1582,7 +1582,6 @@ bool TypeChecker::visit(TupleExpression const& _tuple)
 	else
 	{
 		bool isPure = true;
-		//Type const* inlineArrayType = nullptr;
 
 		for (size_t i = 0; i < components.size(); ++i)
 		{
@@ -1605,43 +1604,26 @@ bool TypeChecker::visit(TupleExpression const& _tuple)
 				if (!dynamic_cast<RationalNumberType const&>(*types[i]).mobileType())
 					m_errorReporter.fatalTypeError(3390_error, components[i]->location(), "Invalid rational number.");
 
-//			if (_tuple.isInlineArray())
-//						{
-//							solAssert(!!types[i], "Inline array cannot have empty components");
-
-//							if ((i == 0 || inlineArrayType) && !types[i]->mobileType())
-//								m_errorReporter.fatalTypeError(9563_error, components[i]->location(), "Invalid mobile type.");
-
-//							if (i == 0)
-//								inlineArrayType = types[i]->mobileType();
-//							else if (inlineArrayType)
-//								inlineArrayType = Type::commonType(inlineArrayType, types[i]);
-//						}
+			if (_tuple.isInlineArray() and types[i]->category() != Type::Category::InlineArray)
+			{
+				if (!types[i]->mobileType()->nameable())
+					m_errorReporter.fatalTypeError(
+						9656_error,
+						_tuple.location(),
+						"Unable to deduce nameable type for array elements. Try adding explicit type conversion for the first element."
+					);
+				else if (types[i]->mobileType()->containsNestedMapping())
+					m_errorReporter.fatalTypeError(
+						1545_error,
+						_tuple.location(),
+						"Type " + types[i]->toString(true) + " is only valid in storage."
+					);
+			}
 
 			if (!*components[i]->annotation().isPure)
 				isPure = false;
 		}
 		_tuple.annotation().isPure = isPure;
-		/* TODO: what about mapping part?
-		if (_tuple.isInlineArray())
-		{
-			if (!inlineArrayType)
-				m_errorReporter.fatalTypeError(6378_error, _tuple.location(), "Unable to deduce common type for array elements.");
-			else if (!inlineArrayType->nameable())
-				m_errorReporter.fatalTypeError(
-					9656_error,
-					_tuple.location(),
-					"Unable to deduce nameable type for array elements. Try adding explicit type conversion for the first element."
-				);
-			else if (inlineArrayType->containsNestedMapping())
-				m_errorReporter.fatalTypeError(
-					1545_error,
-					_tuple.location(),
-					"Type " + inlineArrayType->toString(true) + " is only valid in storage."
-				);
-
-			_tuple.annotation().type = TypeProvider::array(DataLocation::Memory, inlineArrayType, types.size());
-		}*/
 
 		if (_tuple.isInlineArray())
 			_tuple.annotation().type = TypeProvider::inlineArray(move(types));
