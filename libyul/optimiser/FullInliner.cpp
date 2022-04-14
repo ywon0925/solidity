@@ -186,10 +186,6 @@ bool FullInliner::shallInline(FunctionCall const& _funCall, YulString _callSite)
 	)
 		usesNewCodeTransform = false;
 
-	// Do not inline into already big functions.
-	if (m_functionSizes.at(_callSite) > (usesNewCodeTransform ? 450 : 45))
-		return false;
-
 	if (m_singleUse.count(calledFunction->name))
 		return true;
 
