@@ -12,7 +12,7 @@ contract C {
     }
 }
 // ====
-// compileViaYul: true
+// compileViaYul: also
 // ----
 // f(bytes32): "789" -> "9"
 // g(bytes32): "789" -> 0x35

@@ -72,6 +72,10 @@ Type const* closestType(Type const* _type, Type const* _targetType, bool _isShif
 		}
 		return TypeProvider::tuple(move(tempComponents));
 	}
+	else if (auto const* inlineArrayType = dynamic_cast<InlineArrayType const*>(_type))
+	{
+		return TypeProvider::array(DataLocation::Memory, inlineArrayType->componentsCommonMobileType(), inlineArrayType->components().size());
+	}
 	else
 		return _targetType->dataStoredIn(DataLocation::Storage) ? _type->mobileType() : _targetType;
 }
