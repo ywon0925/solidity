@@ -20,6 +20,6 @@ contract C {
     }
 }
 // ====
-// compileViaYul: true
+// compileViaYul: also
 // ----
 // g() -> 5, 6

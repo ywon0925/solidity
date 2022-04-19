@@ -37,7 +37,7 @@ contract C {
     }
 }
 // ====
-// compileViaYul: true
+// compileViaYul: also
 // ----
 // testViewToDefault() -> 12, 22
 // testPureToDefault() -> 13, 23

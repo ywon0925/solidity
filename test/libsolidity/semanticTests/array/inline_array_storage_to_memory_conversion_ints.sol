@@ -9,6 +9,6 @@ contract C {
 
 // ====
 // compileToEwasm: also
-// compileViaYul: true
+// compileViaYul: also
 // ----
 // f() -> 3, 6
