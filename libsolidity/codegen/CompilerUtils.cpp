@@ -1113,6 +1113,56 @@ void CompilerUtils::convertType(
 		}
 		break;
 	}
+	case Type::Category::InlineArray:
+	{
+		InlineArrayType const& inlineArray = dynamic_cast<InlineArrayType const&>(_typeOnStack);
+		ArrayType const& arrayType = dynamic_cast<ArrayType const&>(_targetType);
+
+		// stack: <source ref>
+		unsigned stackSize = inlineArray.sizeOnStack();
+		m_context << u256(inlineArray.components().size());
+		// stack: <source ref> <length>
+		m_context << Instruction::DUP1;
+		ArrayUtils(m_context).convertLengthToSize(arrayType, true);
+
+		// stack: <source ref> <length> <size>
+		if (arrayType.isDynamicallySized())
+			m_context << u256(0x20) << Instruction::ADD;
+			// <size> = <size> + 0x20
+		allocateMemory();
+
+		// stack: <source ref> <length> <mem start>
+		m_context << Instruction::DUP1;
+		// stack: <source ref> <length> <mem start> <mem start>
+		moveIntoStack(2 + stackSize);
+		// stack: <mem start> <source ref> <length> <mem start>
+		if (arrayType.isDynamicallySized())
+		{
+			m_context << Instruction::DUP2;
+			// stack e.g. stackSize=1: <mem start> <source ref> <length> <mem start> <length>
+			storeInMemoryDynamic(*TypeProvider::uint256());
+			// memory[<mem start>] = <length>
+			// stack: <mem start> <source ref> <length> <mem data pos>>
+		}
+
+		// stack: <mem start> <source ref> <length> <mem data pos>
+		unsigned depth = inlineArray.sizeOnStack() + 2;
+		for (Type const* component : inlineArray.components())
+		{
+			const unsigned componentSize = component->sizeOnStack();
+			copyToStackTop(depth, componentSize);
+			// stack: <mem start> <source ref> <length> <mem data pos> <value>
+			convertType(*component, *arrayType.baseType());
+			// stack: <mem start> <source ref> <length> <mem data pos> <converted value>
+			storeInMemoryDynamic(*arrayType.baseType());
+			// stack: <mem start> <source ref> <length> <mem data pos>
+			depth -= componentSize;
+		}
+		// stack: <mem start> <source ref> <length> <mem data pos>
+		popStackSlots(2 + stackSize);
+		// stack: <mem start>
+		break;
+	}
 	case Type::Category::ArraySlice:
 	{
 		auto& typeOnStack = dynamic_cast<ArraySliceType const&>(_typeOnStack);
@@ -1286,6 +1336,7 @@ void CompilerUtils::convertType(
 		}
 		break;
 	}
+
 	case Type::Category::Bool:
 		solAssert(_targetType == _typeOnStack, "Invalid conversion for bool.");
 		if (_cleanupNeeded)
