@@ -425,7 +425,7 @@ std::optional<TestStats> runTestSuite(
 int main(int argc, char const *argv[])
 {
 	using namespace solidity::test;
-
+	
 	try
 	{
 		setupTerminal();
@@ -506,6 +506,11 @@ int main(int argc, char const *argv[])
 		return EXIT_FAILURE;
 	}
 	catch (std::runtime_error const& exception)
+	{
+		cerr << exception.what() << endl;
+		return EXIT_FAILURE;
+	}
+	catch (solidity::test::ConfigException const& exception)
 	{
 		cerr << exception.what() << endl;
 		return EXIT_FAILURE;
